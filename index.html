@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="utf-8">
-  <title>Flipbook & Admin Panel</title>
-  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <title>ระบบจัดการเอกสาร E-Book</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
   
   <link href="https://dun0077.github.io/cdn/pdfflip1/dflip/css/dflip.min.css" rel="stylesheet" type="text/css">
   <link href="https://dun0077.github.io/cdn/pdfflip1/dflip/css/themify-icons.min.css" rel="stylesheet" type="text/css">
@@ -12,16 +12,31 @@
   <style>
     body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; }
     .shelf {
-      background-image: var(--shelf); background-size: 100% 35%;
-      background-position: center bottom; background-repeat: no-repeat;
-      max-width: 836px; height: var(--height); display: flex;
-      align-content: center; justify-content: center; margin: auto;
+      background-image: var(--shelf); 
+      background-size: 100% 35%;
+      background-position: center bottom; 
+      background-repeat: no-repeat;
+      max-width: 836px; 
+      height: var(--height); 
+      display: flex;
+      align-content: center; 
+      justify-content: center; 
+      margin: auto;
     }
-    ._df_thumb { width: var(--width) !important; height: var(--height) !important; margin: var(--margin) !important; }
+    ._df_thumb { 
+      width: var(--width) !important; 
+      height: var(--height) !important; 
+      margin: var(--margin) !important; 
+    }
     .title {
-      background: var(--bg); color: var(--color); border: 0.5px;
-      border-color: var(--color); border-radius: 30px; max-width: 836px;
-      box-shadow: 5px 5px 2px var(--color); padding: 10px; margin: auto;
+      background: var(--bg); 
+      color: var(--color); 
+      border: 0.5px solid var(--color); 
+      border-radius: 30px; 
+      max-width: 836px;
+      box-shadow: 5px 5px 2px var(--color); 
+      padding: 10px; 
+      margin: auto;
     }
     .admin-btn {
       position: absolute; top: 15px; right: 15px; background: #333; color: #fff;
@@ -67,7 +82,14 @@
           <script>
             var option_book<?= data[i][j].no ?> = {
               enableDownload: <?= data[i][j].download ?>,
-              text: { toggleSound: "เปิด/ปิดเสียง", toggleThumbnails: "แสดงภาพตัวอย่าง", toggleOutline: "Toggle Outline/Bookmark", previousPage: "หน้าก่อนหน้า", nextPage: "หน้าถัดไป", toggleFullscreen: "แสดงเต็มหน้าจอ", zoomIn: "ขยาย", zoomOut: "ย่อ", toggleHelp: "ช่วยเหลือ", singlePageMode: "แสดงหน้าเดียว", doublePageMode: "แสดงหน้าคู่", downloadPDFFile: "ดาวน์โหลด pdf", gotoFirstPage: "ไปยังหน้าแรก", gotoLastPage: "ไปยังหน้าสุดท้าย", play: "เริ่มเล่นอัตโนมัติ", pause: "หยุดเล่นอัตโนมัติ", share: "แบ่งปัน" }
+              text: { 
+                toggleSound: "เปิด/ปิดเสียง", toggleThumbnails: "แสดงภาพตัวอย่าง", toggleOutline: "Toggle Outline/Bookmark", 
+                previousPage: "หน้าก่อนหน้า", nextPage: "หน้าถัดไป", toggleFullscreen: "แสดงเต็มหน้าจอ", 
+                zoomIn: "ขยาย", zoomOut: "ย่อ", toggleHelp: "ช่วยเหลือ", 
+                singlePageMode: "แสดงหน้าเดียว", doublePageMode: "แสดงหน้าคู่", downloadPDFFile: "ดาวน์โหลด pdf", 
+                gotoFirstPage: "ไปยังหน้าแรก", gotoLastPage: "ไปยังหน้าสุดท้าย", play: "เริ่มเล่นอัตโนมัติ", 
+                pause: "หยุดเล่นอัตโนมัติ", share: "แบ่งปัน" 
+              }
             }
           </script>
         <? } ?>
@@ -119,7 +141,13 @@
       denyButtonText: 'ลืมรหัสผ่าน',
       showLoaderOnConfirm: true,
       preConfirm: (password) => {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
+          // หากรันผิดที่ (ไม่ได้รันผ่าน GAS) จะดักจับ Error ตรงนี้
+          if (typeof google === 'undefined' || !google.script) {
+            Swal.showValidationMessage('เกิดข้อผิดพลาด: ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาเข้าใช้งานผ่านลิงก์ Google Apps Script');
+            resolve(false);
+            return;
+          }
           google.script.run.withSuccessHandler(function(isValid) {
             if (isValid) { resolve(); } 
             else { Swal.showValidationMessage('รหัสผ่านไม่ถูกต้อง'); resolve(false); }
@@ -140,6 +168,10 @@
   }
 
   function triggerForgotPassword() {
+    if (typeof google === 'undefined' || !google.script) {
+      Swal.fire('ข้อผิดพลาด', 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาเข้าใช้งานผ่านลิงก์ Google Apps Script', 'error');
+      return;
+    }
     Swal.fire({
       title: 'ลืมรหัสผ่าน?',
       text: 'ระบบจะสุ่มรหัสผ่านใหม่และส่งไปยังอีเมลผู้ดูแลระบบ ยืนยันหรือไม่?',
@@ -154,7 +186,7 @@
         });
       }
     }).then((result) => {
-      if (result.isConfirmed) {
+      if (result.isConfirmed && result.value) {
         if (result.value.success) { Swal.fire('สำเร็จ', result.value.message, 'success'); } 
         else { Swal.fire('ผิดพลาด', result.value.message, 'error'); }
       }
@@ -239,7 +271,10 @@
 
       google.script.run.withSuccessHandler(function(response) {
         if(response.success) {
-          Swal.fire('สำเร็จ!', response.message, 'success').then(() => { window.top.location.href = window.top.location.href; });
+          Swal.fire('สำเร็จ!', response.message, 'success').then(() => { 
+            // รีเฟรชหน้าเว็บเพื่อให้แสดงเอกสารใหม่
+            window.top.location.href = window.top.location.href; 
+          });
         } else {
           Swal.fire('ข้อผิดพลาด', response.message, 'error');
         }
