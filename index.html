@@ -7,7 +7,6 @@
   
   <link href="https://dun0077.github.io/cdn/pdfflip1/dflip/css/dflip.min.css" rel="stylesheet" type="text/css">
   <link href="https://dun0077.github.io/cdn/pdfflip1/dflip/css/themify-icons.min.css" rel="stylesheet" type="text/css">
-  
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -28,21 +27,20 @@
     }
     .admin-btn { position: absolute; top: 15px; right: 15px; background: #333; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
     .profile-btn { background: #17a2b8; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px; }
-    
-    /* ขยายแผงควบคุมให้กว้างขึ้นเพื่อรองรับตาราง DataTable */
     #admin-panel { display: none; max-width: 900px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    
     .form-group { margin-bottom: 15px; text-align: left; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
     .form-group input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
     .submit-btn { background: #28a745; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 20px;}
     .back-btn { background: #dc3545; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
-    
-    /* ปุ่ม Action ใน DataTable */
     .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin: 2px;}
     .edit-btn { background-color: #ffc107; color: #000; }
     .delete-btn { background-color: #dc3545; color: #fff; }
     
+    /* สไตล์ปรับแต่งเฉพาะหน้าต่างแก้ไขข้อมูล */
+    .swal-edit-label { display: block; text-align: left; margin-top: 10px; font-weight: bold; font-size: 14px; }
+    .swal-edit-input { width: 80%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+
     footer { text-align: center; padding: 20px; font-size: 14px; color: #333; background-color: rgba(255, 255, 255, 0.8); margin-top: 40px; border-top: 1px solid #ddd; }
   </style>
 </head>
@@ -111,10 +109,10 @@
 <script src="https://dun0077.github.io/cdn/pdfflip1/dflip/js/dflip.min.js"></script>
 
 <script>
-  // 🛑 อย่าลืมนำลิงก์ Web App มาใส่
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg6dW-eNFuKcSJld7eespNlnxCGVgnyOpExNwRrL72lKaRDSCADK3IucPVQ3-bfYVX/exec";
+  // 🛑 อย่าลืมเปลี่ยนสิทธิ์และนำลิงก์มาใส่ตรงนี้
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg6dW-eNFuKcSJld7eespNlnxCGVgnyOpExNwRrL72lKaRDSCADK3IucPVQ3-bfYVX/execc";
   let globalBgUrl = "";
-  let allBooksData = []; // เก็บข้อมูลหนังสือเพื่อไปวาด DataTable
+  let allBooksData = []; 
 
   async function initApp() {
     try {
@@ -122,7 +120,7 @@
       const data = await response.json();
       
       const config = data.config;
-      allBooksData = data.books; // เก็บข้อมูล
+      allBooksData = data.books; 
 
       globalBgUrl = config[5][1];
       document.body.background = globalBgUrl;
@@ -156,8 +154,6 @@
       document.getElementById('main-content').style.display = 'block';
 
       setTimeout(() => { if(window.DFLIP) window.DFLIP.parseAll(); }, 500);
-      
-      // เรียกใช้ฟังก์ชันวาดตาราง DataTable
       renderTable();
 
     } catch (error) {
@@ -166,7 +162,6 @@
     }
   }
 
-  // วาดตาราง DataTables
   function renderTable() {
     if ($.fn.DataTable.isDataTable('#bookTable')) {
       $('#bookTable').DataTable().destroy();
@@ -179,17 +174,14 @@
         <td><a href="${book.thumb}" target="_blank">ดูหน้าปก</a></td>
         <td><a href="${book.pdf}" target="_blank">ดู PDF</a></td>
         <td style="white-space: nowrap;">
-          <button class="action-btn edit-btn" onclick="editBook('${book.no}', '${book.name}')">✏️ แก้ไข</button>
+          <button class="action-btn edit-btn" onclick="editBook('${book.no}', '${book.name}')">✏️ แก้ไขข้อมูล/ไฟล์</button>
           <button class="action-btn delete-btn" onclick="deleteBook('${book.no}')">🗑️ ลบ</button>
         </td>
       </tr>
     `).join('');
     
-    // ตั้งค่าภาษาไทยให้ DataTables
     $('#bookTable').DataTable({
-      "language": {
-        "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json"
-      }
+      "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json" }
     });
   }
 
@@ -201,23 +193,46 @@
     return await response.json();
   }
 
-  // -------------------------
-  // ระบบ CRUD (แก้ไข / ลบ)
-  // -------------------------
+  // 🔥 ฟังก์ชันแก้ไขข้อมูลที่ขยายให้รองรับการเปลี่ยนไฟล์ PDF และหน้าปก
   async function editBook(id, currentName) {
-    const { value: newName } = await Swal.fire({
-      title: 'แก้ไขชื่อเอกสาร',
-      input: 'text',
-      inputValue: currentName,
+    const { value: formValues } = await Swal.fire({
+      title: '📝 แก้ไขข้อมูลเอกสาร เล่มที่ ' + id,
+      html:
+        '<label class="swal-edit-label">ชื่อเอกสารใหม่:</label>' +
+        `<input id="swal-bookname" class="swal2-input" style="width:80%; margin-top:5px;" value="${currentName}">` +
+        '<label class="swal-edit-label">เปลี่ยนไฟล์ PDF (เว้นไว้หากใช้ไฟล์เดิม):</label>' +
+        '<input type="file" id="swal-pdf" class="swal-edit-input" accept="application/pdf">' +
+        '<label class="swal-edit-label">เปลี่ยนรูปหน้าปก (เว้นไว้หากใช้รูปเดิม):</label>' +
+        '<input type="file" id="swal-img" class="swal-edit-input" accept="image/*">',
+      focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: '💾 บันทึก',
+      confirmButtonText: '💾 บันทึกการแก้ไข',
       cancelButtonText: 'ยกเลิก',
-      inputValidator: (value) => { if (!value) return 'กรุณาระบุชื่อเอกสาร!'; }
+      preConfirm: async () => {
+        const bookName = document.getElementById('swal-bookname').value;
+        if (!bookName) { Swal.showValidationMessage('กรุณาระบุชื่อเอกสาร'); return false; }
+        
+        const pdfFile = document.getElementById('swal-pdf').files[0];
+        const imgFile = document.getElementById('swal-img').files[0];
+        
+        let pdfData = null, pdfName = null;
+        let imgData = null, imgName = null, imgMime = null;
+        
+        // อ่านไฟล์ใหม่หากแอดมินเลือกใส่เข้ามา
+        if (pdfFile) { pdfData = await getBase64(pdfFile); pdfName = pdfFile.name; }
+        if (imgFile) { imgData = await getBase64(imgFile); imgName = imgFile.name; imgMime = imgFile.type; }
+        
+        return { id: id, bookName: bookName, pdfData: pdfData, pdfName: pdfName, imgData: imgData, imgName: imgName, imgMime: imgMime };
+      }
     });
 
-    if (newName && newName !== currentName) {
-      Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      const res = await callAppsScript({ action: 'updateData', id: id, newName: newName });
+    if (formValues) {
+      Swal.fire({ title: 'กำลังบันทึกและอัปโหลดข้อมูลใหม่...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      
+      // ส่งคำสั่งอัปเดตไปหลังบ้าน
+      formValues.action = 'updateData';
+      const res = await callAppsScript(formValues);
+      
       if (res.success) {
         Swal.fire('สำเร็จ', res.message, 'success').then(() => location.reload());
       } else {
@@ -229,11 +244,10 @@
   async function deleteBook(id) {
     const result = await Swal.fire({
       title: 'ยืนยันการลบ?',
-      text: "ระบบจะลบข้อมูลเอกสารนี้ออกจากระบบแสดงผล (ฐานข้อมูล) คุณแน่ใจหรือไม่?",
+      text: "ระบบจะลบข้อมูลเอกสารนี้ออกจากฐานข้อมูลแสดงผล คุณแน่ใจหรือไม่?",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d',
       confirmButtonText: '🗑️ ใช่, ลบเลย!',
       cancelButtonText: 'ยกเลิก'
     });
@@ -243,9 +257,7 @@
       const res = await callAppsScript({ action: 'deleteData', id: id });
       if (res.success) {
         Swal.fire('ลบสำเร็จ!', res.message, 'success').then(() => location.reload());
-      } else {
-        Swal.fire('ข้อผิดพลาด', res.message, 'error');
-      }
+      } else { Swal.fire('ข้อผิดพลาด', res.message, 'error'); }
     }
   }
 
