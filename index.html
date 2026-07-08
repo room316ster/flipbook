@@ -10,46 +10,23 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
-    body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; }
+    body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; transition: background 0.5s; }
+    #loader { text-align: center; margin-top: 20vh; font-size: 20px; font-weight: bold; color: #555; }
     .shelf {
-      background-image: var(--shelf); 
-      background-size: 100% 35%;
-      background-position: center bottom; 
-      background-repeat: no-repeat;
-      max-width: 836px; 
-      height: var(--height); 
-      display: flex;
-      align-content: center; 
-      justify-content: center; 
-      margin: auto;
+      background-image: var(--shelf); background-size: 100% 35%;
+      background-position: center bottom; background-repeat: no-repeat;
+      max-width: 836px; height: var(--height); display: flex;
+      align-content: center; justify-content: center; margin: auto;
     }
-    ._df_thumb { 
-      width: var(--width) !important; 
-      height: var(--height) !important; 
-      margin: var(--margin) !important; 
-    }
+    ._df_thumb { width: var(--width) !important; height: var(--height) !important; margin: var(--margin) !important; cursor: pointer; }
     .title {
-      background: var(--bg); 
-      color: var(--color); 
-      border: 0.5px solid var(--color); 
-      border-radius: 30px; 
-      max-width: 836px;
-      box-shadow: 5px 5px 2px var(--color); 
-      padding: 10px; 
-      margin: auto;
+      background: var(--bg); color: var(--color); border: 0.5px solid var(--color); 
+      border-radius: 30px; max-width: 836px; box-shadow: 5px 5px 2px var(--color); 
+      padding: 10px; margin: auto; text-align: center;
     }
-    .admin-btn {
-      position: absolute; top: 15px; right: 15px; background: #333; color: #fff;
-      border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px;
-    }
-    .profile-btn {
-      background: #17a2b8; color: #fff; border: none; padding: 10px 20px;
-      border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px;
-    }
-    #admin-panel {
-      display: none; max-width: 600px; margin: 40px auto; background: #fff;
-      padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
+    .admin-btn { position: absolute; top: 15px; right: 15px; background: #333; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+    .profile-btn { background: #17a2b8; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px; }
+    #admin-panel { display: none; max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     .form-group { margin-bottom: 15px; text-align: left; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
     .form-group input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
@@ -58,52 +35,27 @@
     footer { text-align: center; padding: 20px; font-size: 14px; color: #333; background-color: rgba(255, 255, 255, 0.8); margin-top: 40px; border-top: 1px solid #ddd; }
   </style>
 </head>
-<body background="<?= config[5][1] ?>">
+<body>
 
 <button class="admin-btn" onclick="promptAdminLogin()">⚙️ จัดการระบบ</button>
 
-<div class="container" id="main-content">
+<div id="loader">กำลังโหลดเอกสาร...</div>
+
+<div class="container" id="main-content" style="display:none;">
   <center>
     <br>
     <section>
-      <div class="title" style="--color:<?= config[3][1] ?>; --bg:<?= config[4][1] ?>">
-        <h2><?= config[2][1] ?></h2>
-      </div>
+      <div class="title" id="page-title"><h2>Loading...</h2></div>
     </section>
     <br>
-
-    <? var data = getData(); ?>
-    <? for (var i = 0; i < data.length; i++) { ?>
-      <div class="shelf" style="--shelf:url('https://dun0077.github.io/pdfflip/images/shelf_<?= config[6][1] ?>.png'); --height:<?= config[8][1] ?>;">
-        <? for (var j = 0; j < data[i].length; j++) { ?>
-          <div class="_df_thumb" id="book<?= data[i][j].no ?>" source="<?= data[i][j].pdf ?>" thumb="<?= data[i][j].thumb ?>" style="--width:<?= config[9][1] ?>; --height:<?= config[10][1] ?>; --margin:<?= config[11][1] ?>;">
-            <?= data[i][j].name ?>
-          </div>
-          <script>
-            var option_book<?= data[i][j].no ?> = {
-              enableDownload: <?= data[i][j].download ?>,
-              text: { 
-                toggleSound: "เปิด/ปิดเสียง", toggleThumbnails: "แสดงภาพตัวอย่าง", toggleOutline: "Toggle Outline/Bookmark", 
-                previousPage: "หน้าก่อนหน้า", nextPage: "หน้าถัดไป", toggleFullscreen: "แสดงเต็มหน้าจอ", 
-                zoomIn: "ขยาย", zoomOut: "ย่อ", toggleHelp: "ช่วยเหลือ", 
-                singlePageMode: "แสดงหน้าเดียว", doublePageMode: "แสดงหน้าคู่", downloadPDFFile: "ดาวน์โหลด pdf", 
-                gotoFirstPage: "ไปยังหน้าแรก", gotoLastPage: "ไปยังหน้าสุดท้าย", play: "เริ่มเล่นอัตโนมัติ", 
-                pause: "หยุดเล่นอัตโนมัติ", share: "แบ่งปัน" 
-              }
-            }
-          </script>
-        <? } ?>
-      </div>
-    <? } ?>
+    <div id="book-container"></div>
   </center>
 </div>
 
 <div id="admin-panel">
   <h2 style="text-align:center;">แผงควบคุมแอดมิน</h2>
-  
   <button class="profile-btn" onclick="promptChangePassword()">🔑 จัดการโปรไฟล์ (เปลี่ยนรหัสผ่าน)</button>
   <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
-  
   <h3 style="text-align:center;">ฟอร์มอัปโหลดเอกสารใหม่</h3>
   <div class="form-group">
     <label>ชื่อหนังสือ/เอกสาร:</label>
@@ -121,38 +73,99 @@
   <button class="back-btn" onclick="exitAdmin()">🚪 กลับสู่หน้าหลัก</button>
 </div>
 
-<footer>
-  พัฒนาโดยนายวีระยุทธ ประชุมรักษ์ พนักงานคอมพิวเตอร์ ประจำศาลแขวงอุบลราชธานี กลุ่มงานเทคโนโลยีสารสนเทศ
-</footer>
+<footer>พัฒนาโดยนายวีระยุทธ ประชุมรักษ์ พนักงานคอมพิวเตอร์ ประจำศาลแขวงอุบลราชธานี กลุ่มงานเทคโนโลยีสารสนเทศ</footer>
 
 <script src="https://dun0077.github.io/cdn/pdfflip1/dflip/js/libs/jquery.min.js"></script>
 <script src="https://dun0077.github.io/cdn/pdfflip1/dflip/js/dflip.min.js"></script>
 
 <script>
+  // 🛑 นำลิงก์ Web App (ที่ลงท้ายด้วย /exec) มาใส่ที่นี่
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg6dW-eNFuKcSJld7eespNlnxCGVgnyOpExNwRrL72lKaRDSCADK3IucPVQ3-bfYVX/exec";
+  let globalBgUrl = "";
+
+  // ฟังก์ชันโหลดข้อมูลเมื่อเข้าเว็บ
+  async function initApp() {
+    try {
+      const response = await fetch(APPS_SCRIPT_URL + "?action=getData");
+      const data = await response.json();
+      
+      const config = data.config;
+      const books = data.books;
+
+      // จัดการหน้าตาเว็บตาม Config
+      globalBgUrl = config[5][1];
+      document.body.background = globalBgUrl;
+      
+      const titleDiv = document.getElementById('page-title');
+      titleDiv.style.setProperty('--color', config[3][1]);
+      titleDiv.style.setProperty('--bg', config[4][1]);
+      titleDiv.innerHTML = `<h2>${config[2][1]}</h2>`;
+
+      // จัดเรียงหนังสือลงชั้น
+      const chunkSize = parseInt(config[7][1]);
+      const bookContainer = document.getElementById('book-container');
+      let html = '';
+
+      for (let i = 0; i < books.length; i += chunkSize) {
+        const shelfBooks = books.slice(i, i + chunkSize);
+        html += `<div class="shelf" style="--shelf:url('https://dun0077.github.io/pdfflip/images/shelf_${config[6][1]}.png'); --height:${config[8][1]};">`;
+        
+        shelfBooks.forEach(book => {
+          html += `<div class="_df_thumb" id="book${book.no}" source="${book.pdf}" thumb="${book.thumb}" style="--width:${config[9][1]}; --height:${config[10][1]}; --margin:${config[11][1]};">${book.name}</div>`;
+          
+          // กำหนดตั้งค่าให้ปุ่ม Flipbook
+          window[`option_book${book.no}`] = {
+            enableDownload: (book.download === 'true' || book.download === true),
+            text: { toggleSound: "เปิด/ปิดเสียง", toggleThumbnails: "แสดงภาพตัวอย่าง", toggleFullscreen: "แสดงเต็มหน้าจอ", zoomIn: "ขยาย", zoomOut: "ย่อ" }
+          };
+        });
+        html += `</div>`;
+      }
+      
+      bookContainer.innerHTML = html;
+      
+      // ปิด Loader และแสดงเนื้อหา
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+
+      // โหลดระบบ Flipbook ใหม่หลังจากสร้าง Element เสร็จ
+      setTimeout(() => { if(window.DFLIP) window.DFLIP.parseAll(); }, 500);
+
+    } catch (error) {
+      document.getElementById('loader').innerHTML = "เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล";
+      console.error(error);
+    }
+  }
+
+  // ฟังก์ชันยิง API ไปยัง Google Apps Script (แบบ POST)
+  async function callAppsScript(payload) {
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    return await response.json();
+  }
+
+  // -------------------------------------------------------------
+  // ระบบ Admin ควบคุมผ่าน API
+  // -------------------------------------------------------------
+
   function promptAdminLogin() {
     Swal.fire({
       title: 'เข้าสู่ระบบจัดการ',
       input: 'password',
       inputAttributes: { autocapitalize: 'off' },
-      showCancelButton: true,
-      showDenyButton: true, 
-      confirmButtonText: 'เข้าสู่ระบบ',
-      cancelButtonText: 'ยกเลิก',
-      denyButtonText: 'ลืมรหัสผ่าน',
+      showCancelButton: true, showDenyButton: true, 
+      confirmButtonText: 'เข้าสู่ระบบ', cancelButtonText: 'ยกเลิก', denyButtonText: 'ลืมรหัสผ่าน',
       showLoaderOnConfirm: true,
-      preConfirm: (password) => {
-        return new Promise((resolve, reject) => {
-          // หากรันผิดที่ (ไม่ได้รันผ่าน GAS) จะดักจับ Error ตรงนี้
-          if (typeof google === 'undefined' || !google.script) {
-            Swal.showValidationMessage('เกิดข้อผิดพลาด: ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาเข้าใช้งานผ่านลิงก์ Google Apps Script');
-            resolve(false);
-            return;
-          }
-          google.script.run.withSuccessHandler(function(isValid) {
-            if (isValid) { resolve(); } 
-            else { Swal.showValidationMessage('รหัสผ่านไม่ถูกต้อง'); resolve(false); }
-          }).verifyAdmin(password);
-        });
+      preConfirm: async (password) => {
+        try {
+          const res = await callAppsScript({ action: 'verifyAdmin', password: password });
+          if (res.isValid) return true;
+          Swal.showValidationMessage('รหัสผ่านไม่ถูกต้อง'); return false;
+        } catch (e) {
+          Swal.showValidationMessage('ติดต่อเซิร์ฟเวอร์ไม่ได้'); return false;
+        }
       },
       allowOutsideClick: () => !Swal.isLoading()
     }).then((result) => {
@@ -168,27 +181,18 @@
   }
 
   function triggerForgotPassword() {
-    if (typeof google === 'undefined' || !google.script) {
-      Swal.fire('ข้อผิดพลาด', 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาเข้าใช้งานผ่านลิงก์ Google Apps Script', 'error');
-      return;
-    }
     Swal.fire({
       title: 'ลืมรหัสผ่าน?',
-      text: 'ระบบจะสุ่มรหัสผ่านใหม่และส่งไปยังอีเมลผู้ดูแลระบบ ยืนยันหรือไม่?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'ใช่, ส่งรหัสผ่านใหม่',
-      cancelButtonText: 'ยกเลิก',
+      text: 'ระบบจะส่งรหัสผ่านใหม่ไปยังอีเมล ยืนยันหรือไม่?',
+      icon: 'question', showCancelButton: true,
+      confirmButtonText: 'ส่งรหัสผ่าน', cancelButtonText: 'ยกเลิก',
       showLoaderOnConfirm: true,
-      preConfirm: () => {
-        return new Promise((resolve) => {
-          google.script.run.withSuccessHandler((res) => { resolve(res); }).forgotPassword();
-        });
+      preConfirm: async () => {
+        return await callAppsScript({ action: 'forgotPassword' });
       }
     }).then((result) => {
-      if (result.isConfirmed && result.value) {
-        if (result.value.success) { Swal.fire('สำเร็จ', result.value.message, 'success'); } 
-        else { Swal.fire('ผิดพลาด', result.value.message, 'error'); }
+      if (result.isConfirmed) {
+        result.value.success ? Swal.fire('สำเร็จ', result.value.message, 'success') : Swal.fire('ผิดพลาด', result.value.message, 'error');
       }
     });
   }
@@ -196,45 +200,24 @@
   function promptChangePassword() {
     Swal.fire({
       title: 'เปลี่ยนรหัสผ่าน',
-      html:
-        '<input type="password" id="oldPass" class="swal2-input" placeholder="รหัสผ่านเดิม">' +
-        '<input type="password" id="newPass" class="swal2-input" placeholder="รหัสผ่านใหม่">' +
-        '<input type="password" id="confirmPass" class="swal2-input" placeholder="ยืนยันรหัสผ่านใหม่">',
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: 'บันทึกรหัสผ่าน',
-      cancelButtonText: 'ยกเลิก',
-      preConfirm: () => {
+      html: '<input type="password" id="oldPass" class="swal2-input" placeholder="รหัสผ่านเดิม"><input type="password" id="newPass" class="swal2-input" placeholder="รหัสผ่านใหม่"><input type="password" id="confirmPass" class="swal2-input" placeholder="ยืนยันรหัสผ่านใหม่">',
+      focusConfirm: false, showCancelButton: true,
+      confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก',
+      preConfirm: async () => {
         const oldPass = document.getElementById('oldPass').value;
         const newPass = document.getElementById('newPass').value;
-        const confirmPass = document.getElementById('confirmPass').value;
-
-        if (!oldPass || !newPass || !confirmPass) {
-          Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
-          return false;
-        }
-        if (newPass !== confirmPass) {
-          Swal.showValidationMessage('รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน');
-          return false;
-        }
-        return new Promise((resolve) => {
-          google.script.run.withSuccessHandler((res) => {
-            if (res.success) { resolve(); }
-            else { Swal.showValidationMessage(res.message); resolve(false); }
-          }).changePassword(oldPass, newPass);
-        });
+        if (newPass !== document.getElementById('confirmPass').value) { Swal.showValidationMessage('รหัสผ่านใหม่ไม่ตรงกัน'); return false; }
+        const res = await callAppsScript({ action: 'changePassword', oldPassword: oldPass, newPassword: newPass });
+        if (res.success) return true;
+        Swal.showValidationMessage(res.message); return false;
       }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire('สำเร็จ!', 'รหัสผ่านของคุณถูกเปลี่ยนเรียบร้อยแล้ว', 'success');
-      }
-    });
+    }).then((result) => { if (result.isConfirmed) Swal.fire('สำเร็จ!', 'รหัสผ่านเปลี่ยนเรียบร้อย', 'success'); });
   }
 
   function exitAdmin() {
     document.getElementById('main-content').style.display = 'block';
     document.getElementById('admin-panel').style.display = 'none';
-    document.body.style.background = 'url("<?= config[5][1] ?>")'; 
+    document.body.style.background = `url("${globalBgUrl}")`; 
   }
 
   function getBase64(file) {
@@ -252,37 +235,34 @@
     var imgInput = document.getElementById('imgFile');
 
     if (!bookName || pdfInput.files.length === 0 || imgInput.files.length === 0) {
-      Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลและเลือกไฟล์ให้ครบถ้วน', 'warning');
-      return;
+      return Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลและเลือกไฟล์ให้ครบ', 'warning');
     }
 
-    Swal.fire({
-      title: 'กำลังอัปโหลด...',
-      text: 'กรุณารอสักครู่ ห้ามปิดหน้าต่างนี้',
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading() }
-    });
+    Swal.fire({ title: 'กำลังอัปโหลด...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
 
     try {
       var pdfBase64 = await getBase64(pdfInput.files[0]);
       var imgBase64 = await getBase64(imgInput.files[0]);
 
-      var formData = { bookName: bookName, pdfData: pdfBase64, pdfName: pdfInput.files[0].name, imgData: imgBase64, imgName: imgInput.files[0].name, imgMime: imgInput.files[0].type };
+      var formData = { 
+        action: 'uploadData', bookName: bookName, 
+        pdfData: pdfBase64, pdfName: pdfInput.files[0].name, 
+        imgData: imgBase64, imgName: imgInput.files[0].name, imgMime: imgInput.files[0].type 
+      };
 
-      google.script.run.withSuccessHandler(function(response) {
-        if(response.success) {
-          Swal.fire('สำเร็จ!', response.message, 'success').then(() => { 
-            // รีเฟรชหน้าเว็บเพื่อให้แสดงเอกสารใหม่
-            window.top.location.href = window.top.location.href; 
-          });
-        } else {
-          Swal.fire('ข้อผิดพลาด', response.message, 'error');
-        }
-      }).uploadData(formData);
+      const res = await callAppsScript(formData);
+      if(res.success) {
+        Swal.fire('สำเร็จ!', res.message, 'success').then(() => { location.reload(); });
+      } else {
+        Swal.fire('ข้อผิดพลาด', res.message, 'error');
+      }
     } catch (e) {
-      Swal.fire('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการอ่านไฟล์', 'error');
+      Swal.fire('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการอัปโหลด', 'error');
     }
   }
+
+  // สั่งให้โหลดข้อมูลเมื่อเปิดหน้าเว็บ
+  window.onload = initApp;
 </script>
 </body>
 </html>
