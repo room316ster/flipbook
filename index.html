@@ -69,7 +69,7 @@
     <label>รูปภาพหน้าปก (JPG/PNG):</label>
     <input type="file" id="imgFile" accept="image/*">
   </div>
-  <button class="submit-btn" onclick="uploadFiles()">💾 อัปโหลดและบันทึก</button>
+  <button class="submit-btn" onclick="uploadFiles()">💾 อัปโหลดไฟล์ไปที่ GitHub</button>
   <button class="back-btn" onclick="exitAdmin()">🚪 กลับสู่หน้าหลัก</button>
 </div>
 
@@ -79,11 +79,12 @@
 <script src="https://dun0077.github.io/cdn/pdfflip1/dflip/js/dflip.min.js"></script>
 
 <script>
-  // 🛑 นำลิงก์ Web App (ที่ลงท้ายด้วย /exec) มาใส่ที่นี่
+  // ==========================================
+  // 🔗 นำลิงก์ Web App ของ Google Apps Script มาใส่ที่นี่
+  // ==========================================
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg6dW-eNFuKcSJld7eespNlnxCGVgnyOpExNwRrL72lKaRDSCADK3IucPVQ3-bfYVX/exec";
   let globalBgUrl = "";
 
-  // ฟังก์ชันโหลดข้อมูลเมื่อเข้าเว็บ
   async function initApp() {
     try {
       const response = await fetch(APPS_SCRIPT_URL + "?action=getData");
@@ -92,7 +93,6 @@
       const config = data.config;
       const books = data.books;
 
-      // จัดการหน้าตาเว็บตาม Config
       globalBgUrl = config[5][1];
       document.body.background = globalBgUrl;
       
@@ -101,7 +101,6 @@
       titleDiv.style.setProperty('--bg', config[4][1]);
       titleDiv.innerHTML = `<h2>${config[2][1]}</h2>`;
 
-      // จัดเรียงหนังสือลงชั้น
       const chunkSize = parseInt(config[7][1]);
       const bookContainer = document.getElementById('book-container');
       let html = '';
@@ -113,7 +112,6 @@
         shelfBooks.forEach(book => {
           html += `<div class="_df_thumb" id="book${book.no}" source="${book.pdf}" thumb="${book.thumb}" style="--width:${config[9][1]}; --height:${config[10][1]}; --margin:${config[11][1]};">${book.name}</div>`;
           
-          // กำหนดตั้งค่าให้ปุ่ม Flipbook
           window[`option_book${book.no}`] = {
             enableDownload: (book.download === 'true' || book.download === true),
             text: { toggleSound: "เปิด/ปิดเสียง", toggleThumbnails: "แสดงภาพตัวอย่าง", toggleFullscreen: "แสดงเต็มหน้าจอ", zoomIn: "ขยาย", zoomOut: "ย่อ" }
@@ -123,12 +121,9 @@
       }
       
       bookContainer.innerHTML = html;
-      
-      // ปิด Loader และแสดงเนื้อหา
       document.getElementById('loader').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
 
-      // โหลดระบบ Flipbook ใหม่หลังจากสร้าง Element เสร็จ
       setTimeout(() => { if(window.DFLIP) window.DFLIP.parseAll(); }, 500);
 
     } catch (error) {
@@ -137,7 +132,6 @@
     }
   }
 
-  // ฟังก์ชันยิง API ไปยัง Google Apps Script (แบบ POST)
   async function callAppsScript(payload) {
     const response = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
@@ -145,10 +139,6 @@
     });
     return await response.json();
   }
-
-  // -------------------------------------------------------------
-  // ระบบ Admin ควบคุมผ่าน API
-  // -------------------------------------------------------------
 
   function promptAdminLogin() {
     Swal.fire({
@@ -182,14 +172,10 @@
 
   function triggerForgotPassword() {
     Swal.fire({
-      title: 'ลืมรหัสผ่าน?',
-      text: 'ระบบจะส่งรหัสผ่านใหม่ไปยังอีเมล ยืนยันหรือไม่?',
-      icon: 'question', showCancelButton: true,
-      confirmButtonText: 'ส่งรหัสผ่าน', cancelButtonText: 'ยกเลิก',
+      title: 'ลืมรหัสผ่าน?', text: 'ระบบจะส่งรหัสผ่านใหม่ไปยังอีเมล ยืนยันหรือไม่?',
+      icon: 'question', showCancelButton: true, confirmButtonText: 'ส่งรหัสผ่าน', cancelButtonText: 'ยกเลิก',
       showLoaderOnConfirm: true,
-      preConfirm: async () => {
-        return await callAppsScript({ action: 'forgotPassword' });
-      }
+      preConfirm: async () => { return await callAppsScript({ action: 'forgotPassword' }); }
     }).then((result) => {
       if (result.isConfirmed) {
         result.value.success ? Swal.fire('สำเร็จ', result.value.message, 'success') : Swal.fire('ผิดพลาด', result.value.message, 'error');
@@ -201,8 +187,7 @@
     Swal.fire({
       title: 'เปลี่ยนรหัสผ่าน',
       html: '<input type="password" id="oldPass" class="swal2-input" placeholder="รหัสผ่านเดิม"><input type="password" id="newPass" class="swal2-input" placeholder="รหัสผ่านใหม่"><input type="password" id="confirmPass" class="swal2-input" placeholder="ยืนยันรหัสผ่านใหม่">',
-      focusConfirm: false, showCancelButton: true,
-      confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก',
+      focusConfirm: false, showCancelButton: true, confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก',
       preConfirm: async () => {
         const oldPass = document.getElementById('oldPass').value;
         const newPass = document.getElementById('newPass').value;
@@ -224,6 +209,7 @@
     return new Promise((resolve, reject) => {
       var reader = new FileReader();
       reader.readAsDataURL(file);
+      // แยกรหัส Base64 ออกมาส่งไปให้ GitHub
       reader.onload = () => resolve(reader.result.split(',')[1]);
       reader.onerror = error => reject(error);
     });
@@ -238,7 +224,12 @@
       return Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลและเลือกไฟล์ให้ครบ', 'warning');
     }
 
-    Swal.fire({ title: 'กำลังอัปโหลด...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+    Swal.fire({ 
+      title: 'กำลังอัปโหลดไปยัง GitHub...', 
+      text: 'การอัปโหลดไฟล์ขนาดใหญ่อาจใช้เวลาสักครู่ กรุณาอย่าปิดหน้าต่าง',
+      allowOutsideClick: false, 
+      didOpen: () => { Swal.showLoading() } 
+    });
 
     try {
       var pdfBase64 = await getBase64(pdfInput.files[0]);
@@ -261,7 +252,6 @@
     }
   }
 
-  // สั่งให้โหลดข้อมูลเมื่อเปิดหน้าเว็บ
   window.onload = initApp;
 </script>
 </body>
