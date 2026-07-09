@@ -20,7 +20,6 @@
       align-content: center; justify-content: center; margin: auto;
     }
     
-    /* บังคับขนาดหน้าปกให้ใหญ่ เด่นชัด */
     ._df_thumb { width: 170px !important; height: 240px !important; margin: 10px 20px !important; cursor: pointer; }
     
     .title {
@@ -31,9 +30,12 @@
     .admin-btn { position: absolute; top: 15px; right: 15px; background: #333; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
     .profile-btn { background: #17a2b8; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px; }
     #admin-panel { display: none; max-width: 900px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    .form-group { margin-bottom: 15px; text-align: left; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    
+    .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+    .form-group { flex: 1; text-align: left; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
     .form-group input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    
     .submit-btn { background: #28a745; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 20px;}
     .back-btn { background: #dc3545; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
     .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin: 2px;}
@@ -69,19 +71,35 @@
   <hr style="margin: 20px 0; border: 0.5px solid #ddd;">
   
   <h3 style="text-align:center;">➕ อัปโหลดเอกสารใหม่</h3>
-  <div class="form-group">
+  <div class="form-group" style="margin-bottom:15px;">
     <label>ชื่อหนังสือ/เอกสาร:</label>
     <input type="text" id="bookName" placeholder="ระบุชื่อเอกสาร">
   </div>
-  <div class="form-group">
-    <label>ไฟล์ PDF:</label>
-    <input type="file" id="pdfFile" accept="application/pdf">
+  
+  <!-- เพิ่มช่องกรอกวันที่ -->
+  <div class="form-row">
+    <div class="form-group">
+      <label>📅 วันที่เริ่มแสดงผล (เว้นว่างไว้หากต้องการแสดงทันที):</label>
+      <input type="date" id="startDate">
+    </div>
+    <div class="form-group">
+      <label>📅 วันที่สิ้นสุด (เว้นว่างไว้หากต้องการแสดงตลอดไป):</label>
+      <input type="date" id="endDate">
+    </div>
   </div>
-  <div class="form-group">
-    <label>รูปภาพหน้าปก (JPG/PNG):</label>
-    <input type="file" id="imgFile" accept="image/*">
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>ไฟล์ PDF:</label>
+      <input type="file" id="pdfFile" accept="application/pdf">
+    </div>
+    <div class="form-group">
+      <label>รูปภาพหน้าปก (JPG/PNG):</label>
+      <input type="file" id="imgFile" accept="image/*">
+    </div>
   </div>
-  <button class="submit-btn" onclick="uploadFiles()">💾 อัปโหลดไฟล์ไปที่ GitHub</button>
+  
+  <button class="submit-btn" onclick="uploadFiles()">💾 อัปโหลดไฟล์และตั้งเวลา</button>
   
   <hr style="margin: 30px 0; border: 0.5px solid #ddd;">
 
@@ -92,6 +110,8 @@
         <tr>
           <th>No.</th>
           <th>ชื่อเอกสาร</th>
+          <th>เริ่มแสดง</th>
+          <th>สิ้นสุด</th>
           <th>หน้าปก</th>
           <th>PDF</th>
           <th>จัดการ</th>
@@ -111,7 +131,7 @@
 <script src="https://dun0077.github.io/cdn/pdfflip1/dflip/js/dflip.min.js"></script>
 
 <script>
-  // 🛑 ใส่ URL ลิงก์ Web App ประจำตัวแอปสคริปต์ของคุณตรงนี้ครับ
+  // 🛑 ใส่ URL ลิงก์ Web App ตรงนี้ครับ
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzSvKZdHPjAmuW65d-HcTuX-QYOr4SfZSt1tu3PA1IR9i_jdLX2QmLlcvDev_RQybo/exec";
   let globalBgUrl = "";
   let allBooksData = []; 
@@ -132,19 +152,39 @@
       titleDiv.style.setProperty('--bg', config[4][1]);
       titleDiv.innerHTML = `<h2>${config[2][1]}</h2>`;
 
+      // ⏱️ ระบบคัดกรองวันที่ (ซ่อนเอกสารที่ยังไม่ถึงกำหนด หรือหมดอายุแล้ว)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // ตั้งเวลาปัจจุบันให้เป็นเที่ยงคืนเพื่อเปรียบเทียบเฉพาะวัน
+
+      const activeBooks = allBooksData.filter(book => {
+        let showBook = true;
+        
+        if (book.start_date && book.start_date.trim() !== "") {
+          let sDate = new Date(book.start_date);
+          sDate.setHours(0, 0, 0, 0);
+          if (today < sDate) showBook = false; // ยังไม่ถึงวันที่กำหนด
+        }
+        
+        if (book.end_date && book.end_date.trim() !== "") {
+          let eDate = new Date(book.end_date);
+          eDate.setHours(23, 59, 59, 999); // ให้แสดงถึง 23:59 น. ของวันสิ้นสุด
+          if (today > eDate) showBook = false; // เลยกำหนดเวลาแล้ว
+        }
+        
+        return showBook;
+      });
+
       const chunkSize = parseInt(config[7][1]);
       const bookContainer = document.getElementById('book-container');
       let html = '';
 
-      for (let i = 0; i < allBooksData.length; i += chunkSize) {
-        const shelfBooks = allBooksData.slice(i, i + chunkSize);
+      // วนลูปวาดชั้นหนังสือเฉพาะ "activeBooks" ที่ผ่านการตรวจสอบเวลาแล้ว
+      for (let i = 0; i < activeBooks.length; i += chunkSize) {
+        const shelfBooks = activeBooks.slice(i, i + chunkSize);
         html += `<div class="shelf" style="--shelf:url('https://dun0077.github.io/pdfflip/images/shelf_${config[6][1]}.png'); --height:290px;">`;
         
         shelfBooks.forEach(book => {
-          // 🔥 คำสั่งสลายแคช (Cache-Buster) บังคับดึงรูปใหม่สดๆ ไม่สนแคชเก่า
           const noCacheThumb = book.thumb + (book.thumb.includes('?') ? '&' : '?') + "v=" + new Date().getTime();
-
-          // 🔥 บังคับใส่เป็นภาพพื้นหลังและตีกรอบหนังสือทันที (แก้ปัญหา 3D โหลดรูปไม่ขึ้น)
           html += `<div class="_df_thumb" id="book${book.no}" source="${book.pdf}" thumb="${noCacheThumb}" 
                          style="background-image:url('${noCacheThumb}'); background-size:100% 100%; background-position:center; background-repeat:no-repeat; border: 1px solid #ddd; box-shadow: 2px 2px 6px rgba(0,0,0,0.3);">
                      <span style="display:none;">${book.name}</span>
@@ -159,7 +199,13 @@
         html += `</div>`;
       }
       
-      bookContainer.innerHTML = html;
+      // กรณีไม่มีหนังสือในชั้นเลย ให้แสดงข้อความแจ้งเตือน
+      if (activeBooks.length === 0) {
+        bookContainer.innerHTML = "<h3 style='color:#555; text-align:center;'>ยังไม่มีเอกสารที่เปิดให้แสดงผลในขณะนี้</h3>";
+      } else {
+        bookContainer.innerHTML = html;
+      }
+
       document.getElementById('loader').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
 
@@ -177,14 +223,17 @@
       $('#bookTable').DataTable().destroy();
     }
     const tbody = document.querySelector('#bookTable tbody');
+    // ตารางแอดมินยังคงแสดง allBooksData เพื่อให้จัดการได้ทั้งหมดแม้ว่าจะซ่อนอยู่ก็ตาม
     tbody.innerHTML = allBooksData.map(book => `
       <tr>
         <td>${book.no}</td>
         <td>${book.name}</td>
+        <td style="color:#28a745;">${book.start_date || 'แสดงทันที'}</td>
+        <td style="color:#dc3545;">${book.end_date || 'ไม่มีกำหนด'}</td>
         <td><a href="${book.thumb}" target="_blank">ดูหน้าปก</a></td>
         <td><a href="${book.pdf}" target="_blank">ดู PDF</a></td>
         <td style="white-space: nowrap;">
-          <button class="action-btn edit-btn" onclick="editBook('${book.no}', '${book.name}')">✏️ แก้ไขข้อมูล/ไฟล์</button>
+          <button class="action-btn edit-btn" onclick="editBook('${book.no}', '${book.name}', '${book.start_date || ''}', '${book.end_date || ''}')">✏️ แก้ไขข้อมูล</button>
           <button class="action-btn delete-btn" onclick="deleteBook('${book.no}')">🗑️ ลบ</button>
         </td>
       </tr>
@@ -203,15 +252,26 @@
     return await response.json();
   }
 
-  async function editBook(id, currentName) {
+  // อัปเดตฟังก์ชัน Edit ให้มีช่องเปลี่ยนวันที่
+  async function editBook(id, currentName, currentStart, currentEnd) {
     const { value: formValues } = await Swal.fire({
       title: '📝 แก้ไขข้อมูลเอกสาร เล่มที่ ' + id,
       html:
         '<label class="swal-edit-label">ชื่อเอกสารใหม่:</label>' +
-        `<input id="swal-bookname" class="swal2-input" style="width:80%; margin-top:5px;" value="${currentName}">` +
-        '<label class="swal-edit-label">เปลี่ยนไฟล์ PDF (เว้นไว้หากใช้ไฟล์เดิม):</label>' +
+        `<input id="swal-bookname" class="swal2-input" style="width:80%; margin-top:5px; margin-bottom:15px;" value="${currentName}">` +
+        
+        '<div style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;">' +
+        '<div><label class="swal-edit-label" style="font-size:12px;">📅 เริ่มแสดงผล:</label>' +
+        `<input type="date" id="swal-start" class="swal-edit-input" style="width:100%" value="${currentStart}"></div>` +
+        '<div><label class="swal-edit-label" style="font-size:12px;">📅 สิ้นสุดแสดงผล:</label>' +
+        `<input type="date" id="swal-end" class="swal-edit-input" style="width:100%" value="${currentEnd}"></div>` +
+        '</div>' +
+        
+        '<hr style="margin: 15px 0;">' +
+        '<label class="swal-edit-label" style="font-size:12px; color:red;">*เว้นช่องไฟล์ด้านล่างไว้ หากต้องการใช้ไฟล์เดิม</label>' +
+        '<label class="swal-edit-label">เปลี่ยนไฟล์ PDF:</label>' +
         '<input type="file" id="swal-pdf" class="swal-edit-input" accept="application/pdf">' +
-        '<label class="swal-edit-label">เปลี่ยนรูปหน้าปก (เว้นไว้หากใช้รูปเดิม):</label>' +
+        '<label class="swal-edit-label">เปลี่ยนรูปหน้าปก (JPG/PNG):</label>' +
         '<input type="file" id="swal-img" class="swal-edit-input" accept="image/*">',
       focusConfirm: false,
       showCancelButton: true,
@@ -219,6 +279,9 @@
       cancelButtonText: 'ยกเลิก',
       preConfirm: async () => {
         const bookName = document.getElementById('swal-bookname').value;
+        const startDate = document.getElementById('swal-start').value;
+        const endDate = document.getElementById('swal-end').value;
+        
         if (!bookName) { Swal.showValidationMessage('กรุณาระบุชื่อเอกสาร'); return false; }
         
         const pdfFile = document.getElementById('swal-pdf').files[0];
@@ -230,49 +293,45 @@
         if (pdfFile) { pdfData = await getBase64(pdfFile); pdfName = pdfFile.name; }
         if (imgFile) { imgData = await getBase64(imgFile); imgName = imgFile.name; imgMime = imgFile.type; }
         
-        return { id: id, bookName: bookName, pdfData: pdfData, pdfName: pdfName, imgData: imgData, imgName: imgName, imgMime: imgMime };
+        return { 
+          id: id, bookName: bookName, startDate: startDate, endDate: endDate,
+          pdfData: pdfData, pdfName: pdfName, imgData: imgData, imgName: imgName, imgMime: imgMime 
+        };
       }
     });
 
     if (formValues) {
-      Swal.fire({ title: 'กำลังบันทึกและอัปโหลดข้อมูลใหม่...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
       formValues.action = 'updateData';
       const res = await callAppsScript(formValues);
       if (res.success) {
         Swal.fire('สำเร็จ', res.message, 'success').then(() => location.reload());
-      } else {
-        Swal.fire('ข้อผิดพลาด', res.message, 'error');
-      }
+      } else { Swal.fire('ข้อผิดพลาด', res.message, 'error'); }
     }
   }
 
+  // ฟังก์ชันลบ
   async function deleteBook(id) {
     const result = await Swal.fire({
       title: 'ยืนยันการลบ?',
       text: "ระบบจะลบข้อมูลเอกสารนี้ออกจากระบบแสดงผล คุณแน่ใจหรือไม่?",
       icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc3545',
-      confirmButtonText: '🗑️ ใช่, ลบเลย!',
-      cancelButtonText: 'ยกเลิก'
+      showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: '🗑️ ใช่, ลบเลย!', cancelButtonText: 'ยกเลิก'
     });
 
     if (result.isConfirmed) {
       Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
       const res = await callAppsScript({ action: 'deleteData', id: id });
-      if (res.success) {
-        Swal.fire('ลบสำเร็จ!', res.message, 'success').then(() => location.reload());
-      } else { Swal.fire('ข้อผิดพลาด', res.message, 'error'); }
+      if (res.success) { Swal.fire('ลบสำเร็จ!', res.message, 'success').then(() => location.reload()); } 
+      else { Swal.fire('ข้อผิดพลาด', res.message, 'error'); }
     }
   }
 
+  // ระบบล็อกอิน และรีเซ็ตรหัสผ่าน (คงเดิม)
   function promptAdminLogin() {
     Swal.fire({
-      title: 'เข้าสู่ระบบจัดการ',
-      input: 'password',
-      inputAttributes: { autocapitalize: 'off' },
-      showCancelButton: true, showDenyButton: true, 
-      confirmButtonText: 'เข้าสู่ระบบ', cancelButtonText: 'ยกเลิก', denyButtonText: 'ลืมรหัสผ่าน',
+      title: 'เข้าสู่ระบบจัดการ', input: 'password', inputAttributes: { autocapitalize: 'off' },
+      showCancelButton: true, showDenyButton: true, confirmButtonText: 'เข้าสู่ระบบ', cancelButtonText: 'ยกเลิก', denyButtonText: 'ลืมรหัสผ่าน',
       showLoaderOnConfirm: true,
       preConfirm: async (password) => {
         try {
@@ -280,8 +339,7 @@
           if (res.isValid) return true;
           Swal.showValidationMessage('รหัสผ่านไม่ถูกต้อง'); return false;
         } catch (e) { Swal.showValidationMessage('ติดต่อเซิร์ฟเวอร์ไม่ได้'); return false; }
-      },
-      allowOutsideClick: () => !Swal.isLoading()
+      }, allowOutsideClick: () => !Swal.isLoading()
     }).then((result) => {
       if (result.isConfirmed) {
         Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบสำเร็จ', showConfirmButton: false, timer: 1000 });
@@ -294,13 +352,11 @@
 
   function triggerForgotPassword() {
     Swal.fire({
-      title: 'ลืมรหัสผ่าน?', text: 'ระบบจะส่งรหัสผ่านใหม่ไปยังอีเมล ยืนยันหรือไม่?',
-      icon: 'question', showCancelButton: true, confirmButtonText: 'ส่งรหัสผ่าน', cancelButtonText: 'ยกเลิก',
-      showLoaderOnConfirm: true, preConfirm: async () => { return await callAppsScript({ action: 'forgotPassword' }); }
+      title: 'ลืมรหัสผ่าน?', text: 'ระบบจะส่งรหัสผ่านใหม่ไปยังอีเมล ยืนยันหรือไม่?', icon: 'question', 
+      showCancelButton: true, confirmButtonText: 'ส่งรหัสผ่าน', cancelButtonText: 'ยกเลิก', showLoaderOnConfirm: true, 
+      preConfirm: async () => { return await callAppsScript({ action: 'forgotPassword' }); }
     }).then((result) => {
-      if (result.isConfirmed) {
-        result.value.success ? Swal.fire('สำเร็จ', result.value.message, 'success') : Swal.fire('ผิดพลาด', result.value.message, 'error');
-      }
+      if (result.isConfirmed) { result.value.success ? Swal.fire('สำเร็จ', result.value.message, 'success') : Swal.fire('ผิดพลาด', result.value.message, 'error'); }
     });
   }
 
@@ -310,8 +366,7 @@
       html: '<input type="password" id="oldPass" class="swal2-input" placeholder="รหัสผ่านเดิม"><input type="password" id="newPass" class="swal2-input" placeholder="รหัสผ่านใหม่"><input type="password" id="confirmPass" class="swal2-input" placeholder="ยืนยันรหัสผ่านใหม่">',
       focusConfirm: false, showCancelButton: true, confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก',
       preConfirm: async () => {
-        const oldPass = document.getElementById('oldPass').value;
-        const newPass = document.getElementById('newPass').value;
+        const oldPass = document.getElementById('oldPass').value; const newPass = document.getElementById('newPass').value;
         if (newPass !== document.getElementById('confirmPass').value) { Swal.showValidationMessage('รหัสผ่านใหม่ไม่ตรงกัน'); return false; }
         const res = await callAppsScript({ action: 'changePassword', oldPassword: oldPass, newPassword: newPass });
         if (res.success) return true;
@@ -328,23 +383,24 @@
 
   function getBase64(file) {
     return new Promise((resolve, reject) => {
-      var reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = error => reject(error);
+      var reader = new FileReader(); reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(',')[1]); reader.onerror = error => reject(error);
     });
   }
 
+  // อัปเดตฟังก์ชัน Upload เพิ่มการส่งข้อมูลวันที่
   async function uploadFiles() {
     var bookName = document.getElementById('bookName').value;
+    var startDate = document.getElementById('startDate').value;
+    var endDate = document.getElementById('endDate').value;
     var pdfInput = document.getElementById('pdfFile');
     var imgInput = document.getElementById('imgFile');
 
     if (!bookName || pdfInput.files.length === 0 || imgInput.files.length === 0) {
-      return Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลและเลือกไฟล์ให้ครบ', 'warning');
+      return Swal.fire('แจ้งเตือน', 'กรุณาระบุชื่อเอกสาร และเลือกไฟล์ให้ครบ', 'warning');
     }
 
-    Swal.fire({ title: 'กำลังอัปโหลด...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+    Swal.fire({ title: 'กำลังอัปโหลด...', text:'อาจใช้เวลาสักครู่ กรุณาอย่าปิดหน้าต่าง', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
 
     try {
       var pdfBase64 = await getBase64(pdfInput.files[0]);
@@ -352,14 +408,14 @@
 
       var formData = { 
         action: 'uploadData', bookName: bookName, 
+        startDate: startDate, endDate: endDate, // ส่งวันที่ไปบันทึก
         pdfData: pdfBase64, pdfName: pdfInput.files[0].name, 
         imgData: imgBase64, imgName: imgInput.files[0].name, imgMime: imgInput.files[0].type 
       };
 
       const res = await callAppsScript(formData);
-      if(res.success) {
-        Swal.fire('สำเร็จ!', res.message, 'success').then(() => { location.reload(); });
-      } else { Swal.fire('ข้อผิดพลาด', res.message, 'error'); }
+      if(res.success) { Swal.fire('สำเร็จ!', res.message, 'success').then(() => { location.reload(); }); } 
+      else { Swal.fire('ข้อผิดพลาด', res.message, 'error'); }
     } catch (e) { Swal.fire('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการอัปโหลด', 'error'); }
   }
 
