@@ -31,7 +31,6 @@
     .profile-btn { background: #17a2b8; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px; }
     #admin-panel { display: none; max-width: 900px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     
-    /* สไตล์จัดระเบียบฟอร์มให้อยู่บรรทัดเดียวกัน */
     .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
     .form-group { flex: 1; text-align: left; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
@@ -131,7 +130,6 @@
 <script src="https://dun0077.github.io/cdn/pdfflip1/dflip/js/dflip.min.js"></script>
 
 <script>
-  // 🛑 อย่าลืมใส่ URL ลิงก์ Web App ประจำตัวแอปสคริปต์ของคุณตรงนี้นะครับ
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzSvKZdHPjAmuW65d-HcTuX-QYOr4SfZSt1tu3PA1IR9i_jdLX2QmLlcvDev_RQybo/exec";
   let globalBgUrl = "";
   let allBooksData = []; 
@@ -152,7 +150,6 @@
       titleDiv.style.setProperty('--bg', config[4][1]);
       titleDiv.innerHTML = `<h2>${config[2][1]}</h2>`;
 
-      // ⏱️ ระบบตรวจสอบวันที่
       const today = new Date();
       today.setHours(0, 0, 0, 0); 
 
@@ -162,13 +159,13 @@
         if (book.start_date && book.start_date.trim() !== "") {
           let sDate = new Date(book.start_date);
           sDate.setHours(0, 0, 0, 0);
-          if (today < sDate) showBook = false; // ซ่อนถ้ายังไม่ถึงวัน
+          if (today < sDate) showBook = false; 
         }
         
         if (book.end_date && book.end_date.trim() !== "") {
           let eDate = new Date(book.end_date);
           eDate.setHours(23, 59, 59, 999); 
-          if (today > eDate) showBook = false; // ซ่อนถ้าหมดเวลาแล้ว
+          if (today > eDate) showBook = false; 
         }
         
         return showBook;
