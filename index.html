@@ -19,7 +19,10 @@
       max-width: 900px; height: var(--height); display: flex;
       align-content: center; justify-content: center; margin: auto;
     }
+    
+    /* บังคับขนาดรูปหน้าปกให้ใหญ่ เด่นชัด สวยงาม */
     ._df_thumb { width: 170px !important; height: 240px !important; margin: 10px 20px !important; cursor: pointer; }
+    
     .title {
       background: var(--bg); color: var(--color); border: 0.5px solid var(--color); 
       border-radius: 30px; max-width: 836px; box-shadow: 5px 5px 2px var(--color); 
@@ -37,7 +40,6 @@
     .edit-btn { background-color: #ffc107; color: #000; }
     .delete-btn { background-color: #dc3545; color: #fff; }
     
-    /* สไตล์ปรับแต่งเฉพาะหน้าต่างแก้ไขข้อมูล */
     .swal-edit-label { display: block; text-align: left; margin-top: 10px; font-weight: bold; font-size: 14px; }
     .swal-edit-input { width: 80%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
 
@@ -109,7 +111,7 @@
 <script src="https://dun0077.github.io/cdn/pdfflip1/dflip/js/dflip.min.js"></script>
 
 <script>
-  // 🛑 อย่าลืมเปลี่ยนสิทธิ์และนำลิงก์มาใส่ตรงนี้
+  // 🛑 ใส่ URL ลิงก์ Web App ประจำตัวแอปสคริปต์ของคุณตรงนี้ครับ
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg6dW-eNFuKcSJld7eespNlnxCGVgnyOpExNwRrL72lKaRDSCADK3IucPVQ3-bfYVX/exec";
   let globalBgUrl = "";
   let allBooksData = []; 
@@ -136,13 +138,16 @@
 
       for (let i = 0; i < allBooksData.length; i += chunkSize) {
         const shelfBooks = allBooksData.slice(i, i + chunkSize);
+        
+        // กำหนดความสูงชั้นไม้ 290px เพื่อรองรับหนังสือขนาดใหม่
         html += `<div class="shelf" style="--shelf:url('https://dun0077.github.io/pdfflip/images/shelf_${config[6][1]}.png'); --height:290px;">`;
         
         shelfBooks.forEach(book => {
           html += `<div class="_df_thumb" id="book${book.no}" source="${book.pdf}" thumb="${book.thumb}">${book.name}</div>`;
+          
           window[`option_book${book.no}`] = {
             enableDownload: (book.download === 'true' || book.download === true),
-            crossOrigin: "anonymous", 
+            crossOrigin: "anonymous", // เปิดใช้งานดักจับ CORS เพื่อรูปภาพหน้าปกแบบ 3D บน GitHub
             text: { toggleSound: "เปิด/ปิดเสียง", toggleThumbnails: "แสดงภาพตัวอย่าง", toggleFullscreen: "แสดงเต็มหน้าจอ", zoomIn: "ขยาย", zoomOut: "ย่อ" }
           };
         });
@@ -193,7 +198,6 @@
     return await response.json();
   }
 
-  // 🔥 ฟังก์ชันแก้ไขข้อมูลที่ขยายให้รองรับการเปลี่ยนไฟล์ PDF และหน้าปก
   async function editBook(id, currentName) {
     const { value: formValues } = await Swal.fire({
       title: '📝 แก้ไขข้อมูลเอกสาร เล่มที่ ' + id,
@@ -218,7 +222,6 @@
         let pdfData = null, pdfName = null;
         let imgData = null, imgName = null, imgMime = null;
         
-        // อ่านไฟล์ใหม่หากแอดมินเลือกใส่เข้ามา
         if (pdfFile) { pdfData = await getBase64(pdfFile); pdfName = pdfFile.name; }
         if (imgFile) { imgData = await getBase64(imgFile); imgName = imgFile.name; imgMime = imgFile.type; }
         
@@ -228,11 +231,8 @@
 
     if (formValues) {
       Swal.fire({ title: 'กำลังบันทึกและอัปโหลดข้อมูลใหม่...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      
-      // ส่งคำสั่งอัปเดตไปหลังบ้าน
       formValues.action = 'updateData';
       const res = await callAppsScript(formValues);
-      
       if (res.success) {
         Swal.fire('สำเร็จ', res.message, 'success').then(() => location.reload());
       } else {
@@ -244,7 +244,7 @@
   async function deleteBook(id) {
     const result = await Swal.fire({
       title: 'ยืนยันการลบ?',
-      text: "ระบบจะลบข้อมูลเอกสารนี้ออกจากฐานข้อมูลแสดงผล คุณแน่ใจหรือไม่?",
+      text: "ระบบจะลบข้อมูลเอกสารนี้ออกจากระบบแสดงผล คุณแน่ใจหรือไม่?",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
