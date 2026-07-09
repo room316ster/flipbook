@@ -20,7 +20,7 @@
       align-content: center; justify-content: center; margin: auto;
     }
     
-    /* บังคับขนาดรูปหน้าปกให้ใหญ่ เด่นชัด สวยงาม */
+    /* บังคับขนาดหน้าปกให้ใหญ่ เด่นชัด */
     ._df_thumb { width: 170px !important; height: 240px !important; margin: 10px 20px !important; cursor: pointer; }
     
     .title {
@@ -112,7 +112,7 @@
 
 <script>
   // 🛑 ใส่ URL ลิงก์ Web App ประจำตัวแอปสคริปต์ของคุณตรงนี้ครับ
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg6dW-eNFuKcSJld7eespNlnxCGVgnyOpExNwRrL72lKaRDSCADK3IucPVQ3-bfYVX/exec";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzSvKZdHPjAmuW65d-HcTuX-QYOr4SfZSt1tu3PA1IR9i_jdLX2QmLlcvDev_RQybo/exec";
   let globalBgUrl = "";
   let allBooksData = []; 
 
@@ -138,16 +138,21 @@
 
       for (let i = 0; i < allBooksData.length; i += chunkSize) {
         const shelfBooks = allBooksData.slice(i, i + chunkSize);
-        
-        // กำหนดความสูงชั้นไม้ 290px เพื่อรองรับหนังสือขนาดใหม่
         html += `<div class="shelf" style="--shelf:url('https://dun0077.github.io/pdfflip/images/shelf_${config[6][1]}.png'); --height:290px;">`;
         
         shelfBooks.forEach(book => {
-          html += `<div class="_df_thumb" id="book${book.no}" source="${book.pdf}" thumb="${book.thumb}">${book.name}</div>`;
+          // 🔥 คำสั่งสลายแคช (Cache-Buster) บังคับดึงรูปใหม่สดๆ ไม่สนแคชเก่า
+          const noCacheThumb = book.thumb + (book.thumb.includes('?') ? '&' : '?') + "v=" + new Date().getTime();
+
+          // 🔥 บังคับใส่เป็นภาพพื้นหลังและตีกรอบหนังสือทันที (แก้ปัญหา 3D โหลดรูปไม่ขึ้น)
+          html += `<div class="_df_thumb" id="book${book.no}" source="${book.pdf}" thumb="${noCacheThumb}" 
+                         style="background-image:url('${noCacheThumb}'); background-size:100% 100%; background-position:center; background-repeat:no-repeat; border: 1px solid #ddd; box-shadow: 2px 2px 6px rgba(0,0,0,0.3);">
+                     <span style="display:none;">${book.name}</span>
+                   </div>`;
           
           window[`option_book${book.no}`] = {
             enableDownload: (book.download === 'true' || book.download === true),
-            crossOrigin: "anonymous", // เปิดใช้งานดักจับ CORS เพื่อรูปภาพหน้าปกแบบ 3D บน GitHub
+            crossOrigin: "anonymous", 
             text: { toggleSound: "เปิด/ปิดเสียง", toggleThumbnails: "แสดงภาพตัวอย่าง", toggleFullscreen: "แสดงเต็มหน้าจอ", zoomIn: "ขยาย", zoomOut: "ย่อ" }
           };
         });
