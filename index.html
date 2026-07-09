@@ -31,6 +31,7 @@
     .profile-btn { background: #17a2b8; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 10px; }
     #admin-panel { display: none; max-width: 900px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
     
+    /* สไตล์จัดระเบียบฟอร์มให้อยู่บรรทัดเดียวกัน */
     .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
     .form-group { flex: 1; text-align: left; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
@@ -76,7 +77,6 @@
     <input type="text" id="bookName" placeholder="ระบุชื่อเอกสาร">
   </div>
   
-  <!-- เพิ่มช่องกรอกวันที่ -->
   <div class="form-row">
     <div class="form-group">
       <label>📅 วันที่เริ่มแสดงผล (เว้นว่างไว้หากต้องการแสดงทันที):</label>
@@ -131,7 +131,7 @@
 <script src="https://dun0077.github.io/cdn/pdfflip1/dflip/js/dflip.min.js"></script>
 
 <script>
-  // 🛑 ใส่ URL ลิงก์ Web App ตรงนี้ครับ
+  // 🛑 อย่าลืมใส่ URL ลิงก์ Web App ประจำตัวแอปสคริปต์ของคุณตรงนี้นะครับ
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzSvKZdHPjAmuW65d-HcTuX-QYOr4SfZSt1tu3PA1IR9i_jdLX2QmLlcvDev_RQybo/exec";
   let globalBgUrl = "";
   let allBooksData = []; 
@@ -152,9 +152,9 @@
       titleDiv.style.setProperty('--bg', config[4][1]);
       titleDiv.innerHTML = `<h2>${config[2][1]}</h2>`;
 
-      // ⏱️ ระบบคัดกรองวันที่ (ซ่อนเอกสารที่ยังไม่ถึงกำหนด หรือหมดอายุแล้ว)
+      // ⏱️ ระบบตรวจสอบวันที่
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // ตั้งเวลาปัจจุบันให้เป็นเที่ยงคืนเพื่อเปรียบเทียบเฉพาะวัน
+      today.setHours(0, 0, 0, 0); 
 
       const activeBooks = allBooksData.filter(book => {
         let showBook = true;
@@ -162,13 +162,13 @@
         if (book.start_date && book.start_date.trim() !== "") {
           let sDate = new Date(book.start_date);
           sDate.setHours(0, 0, 0, 0);
-          if (today < sDate) showBook = false; // ยังไม่ถึงวันที่กำหนด
+          if (today < sDate) showBook = false; // ซ่อนถ้ายังไม่ถึงวัน
         }
         
         if (book.end_date && book.end_date.trim() !== "") {
           let eDate = new Date(book.end_date);
-          eDate.setHours(23, 59, 59, 999); // ให้แสดงถึง 23:59 น. ของวันสิ้นสุด
-          if (today > eDate) showBook = false; // เลยกำหนดเวลาแล้ว
+          eDate.setHours(23, 59, 59, 999); 
+          if (today > eDate) showBook = false; // ซ่อนถ้าหมดเวลาแล้ว
         }
         
         return showBook;
@@ -178,7 +178,6 @@
       const bookContainer = document.getElementById('book-container');
       let html = '';
 
-      // วนลูปวาดชั้นหนังสือเฉพาะ "activeBooks" ที่ผ่านการตรวจสอบเวลาแล้ว
       for (let i = 0; i < activeBooks.length; i += chunkSize) {
         const shelfBooks = activeBooks.slice(i, i + chunkSize);
         html += `<div class="shelf" style="--shelf:url('https://dun0077.github.io/pdfflip/images/shelf_${config[6][1]}.png'); --height:290px;">`;
@@ -199,7 +198,6 @@
         html += `</div>`;
       }
       
-      // กรณีไม่มีหนังสือในชั้นเลย ให้แสดงข้อความแจ้งเตือน
       if (activeBooks.length === 0) {
         bookContainer.innerHTML = "<h3 style='color:#555; text-align:center;'>ยังไม่มีเอกสารที่เปิดให้แสดงผลในขณะนี้</h3>";
       } else {
@@ -223,13 +221,12 @@
       $('#bookTable').DataTable().destroy();
     }
     const tbody = document.querySelector('#bookTable tbody');
-    // ตารางแอดมินยังคงแสดง allBooksData เพื่อให้จัดการได้ทั้งหมดแม้ว่าจะซ่อนอยู่ก็ตาม
     tbody.innerHTML = allBooksData.map(book => `
       <tr>
         <td>${book.no}</td>
         <td>${book.name}</td>
-        <td style="color:#28a745;">${book.start_date || 'แสดงทันที'}</td>
-        <td style="color:#dc3545;">${book.end_date || 'ไม่มีกำหนด'}</td>
+        <td style="color:#28a745;">${book.start_date || '-'}</td>
+        <td style="color:#dc3545;">${book.end_date || '-'}</td>
         <td><a href="${book.thumb}" target="_blank">ดูหน้าปก</a></td>
         <td><a href="${book.pdf}" target="_blank">ดู PDF</a></td>
         <td style="white-space: nowrap;">
@@ -252,7 +249,6 @@
     return await response.json();
   }
 
-  // อัปเดตฟังก์ชัน Edit ให้มีช่องเปลี่ยนวันที่
   async function editBook(id, currentName, currentStart, currentEnd) {
     const { value: formValues } = await Swal.fire({
       title: '📝 แก้ไขข้อมูลเอกสาร เล่มที่ ' + id,
@@ -310,7 +306,6 @@
     }
   }
 
-  // ฟังก์ชันลบ
   async function deleteBook(id) {
     const result = await Swal.fire({
       title: 'ยืนยันการลบ?',
@@ -327,7 +322,6 @@
     }
   }
 
-  // ระบบล็อกอิน และรีเซ็ตรหัสผ่าน (คงเดิม)
   function promptAdminLogin() {
     Swal.fire({
       title: 'เข้าสู่ระบบจัดการ', input: 'password', inputAttributes: { autocapitalize: 'off' },
@@ -388,7 +382,6 @@
     });
   }
 
-  // อัปเดตฟังก์ชัน Upload เพิ่มการส่งข้อมูลวันที่
   async function uploadFiles() {
     var bookName = document.getElementById('bookName').value;
     var startDate = document.getElementById('startDate').value;
@@ -408,7 +401,7 @@
 
       var formData = { 
         action: 'uploadData', bookName: bookName, 
-        startDate: startDate, endDate: endDate, // ส่งวันที่ไปบันทึก
+        startDate: startDate, endDate: endDate,
         pdfData: pdfBase64, pdfName: pdfInput.files[0].name, 
         imgData: imgBase64, imgName: imgInput.files[0].name, imgMime: imgInput.files[0].type 
       };
